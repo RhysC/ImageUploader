@@ -8,5 +8,10 @@ namespace ImageUploader.Web.Controllers
         {
             return View();
         }
+     
+        public ActionResult Valuation()
+        {
+            return View();
+        }
     }
 }
