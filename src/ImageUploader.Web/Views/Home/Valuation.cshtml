@@ -1,0 +1,275 @@
+﻿@using ImageUploader.Web.Extensions
+@model ImageUploader.Web.Models.ValuationRequest
+
+@{
+    ViewBag.Title = "Valuation";
+}
+
+<style>
+    #holder {
+        border: 10px dashed #ccc;
+        width: 100%;
+        min-height: 300px;
+        margin: 20px auto;
+    }
+
+        #holder.hover {
+            border: 10px dashed #0c0;
+        }
+
+        #holder img {
+            display: block;
+            margin: 10px auto;
+        }
+
+        #holder p {
+            margin: 10px;
+            font-size: 14px;
+        }
+
+    progress {
+        width: 100%;
+    }
+
+        progress:after {
+            content: '%';
+        }
+
+    .fail {
+        background: #c00;
+        padding: 2px;
+        color: #fff;
+    }
+
+    .hidden {
+        display: none !important;
+    }
+</style>
+
+
+<h2>Valuation</h2>
+
+@using (Html.BeginForm("Create", "ValuationRequest", FormMethod.Post, new { id = "requestValuationForm", @class = "form-horizontal", role = "form" }))
+{
+    @Html.AntiForgeryToken()
+
+    <div class="form-horizontal">
+        <hr />
+        @Html.ValidationSummary(true, "", new { @class = "text-danger" })
+
+
+        <fieldset class="form-horizontal">
+            <legend>Item Details</legend>
+            <div class="form-group">
+                @Html.MyLabelFor(model => model.DescriptionOfItemToSell)
+                <div class="col-md-10">
+                    @Html.MyTextInputFor(model => model.DescriptionOfItemToSell)
+                </div>
+            </div>
+
+            <div class="form-group">
+                @Html.MyLabelFor(model => model.MakeOrManufacturer)
+                <div class="col-md-10">
+                    @Html.MyTextInputFor(model => model.MakeOrManufacturer)
+                </div>
+            </div>
+
+            <div class="form-group">
+                @Html.MyLabelFor(model => model.Model)
+                <div class="col-md-10">
+                    @Html.MyTextInputFor(model => model.Model)
+                </div>
+            </div>
+
+            <div class="form-group">
+                @Html.MyLabelFor(model => model.SerialNumber)
+                <div class="col-md-10">
+                    @Html.MyTextInputFor(model => model.SerialNumber)
+                </div>
+            </div>
+
+            <div class="form-group">
+                @Html.MyLabelFor(model => model.OtherDetails)
+                <div class="col-md-10">
+                    @Html.MyTextInputFor(model => model.OtherDetails)
+                </div>
+            </div>
+
+            <div class="form-group">
+                @Html.MyLabelFor(model => model.AmountRequestedForProperty)
+                <div class="col-md-10">
+                    @Html.MyTextInputFor(model => model.AmountRequestedForProperty)
+                </div>
+            </div>
+
+
+            <div class="form-group">
+                @Html.MyLabelFor(model => model.Images)
+                <div class="col-md-10">
+
+                    <input type="file" name="images" multiple accept="image/*" @*onchange="console.log(this.files)"*@
+                           @*data-bind="event: { change: function(data, event){console.log({d:data, e:event});} }, value:images "*@
+                           onchange="xyz = this"
+                           data-bind="event: { change: function() { $root.setFiles($element.files) } }" />
+
+
+                    <article>
+                        <div id="holder">
+                        </div>
+                        <p id="upload" class="hidden"><label>Drag & drop not supported, but you can still upload via this input field:<br><input type="file"></label></p>
+                        <p id="filereader">File API & FileReader API not supported</p>
+                        <p id="formdata">XHR2's FormData is not supported</p>
+                        <p id="progress">XHR2's upload progress isn't supported</p>
+                        <p>Upload progress: <progress id="uploadprogress" min="0" max="100" value="0">0</progress></p>
+                        <p>Drag an image from your desktop on to the drop zone above to see the browser both render the preview, but also upload automatically to this server.</p>
+
+                    </article>
+                </div>
+            </div>
+
+
+        </fieldset>
+
+        <fieldset class="form-horizontal">
+            <legend>Customer Details</legend>
+
+            <div class="form-group">
+                @Html.MyLabelFor(model => model.Name)
+                <div class="col-md-10">
+                    @Html.MyTextInputFor(model => model.Name)
+                </div>
+            </div>
+
+            <div class="form-group">
+                @Html.MyLabelFor(model => model.IsCustomerOver18YearsOld)
+                <div class="col-md-10">
+                    <div class="checkbox">
+                        @Html.MyCheckboxInputFor(model => model.IsCustomerOver18YearsOld)
+                    </div>
+                </div>
+            </div>
+        </fieldset>
+
+        <div class="form-group">
+            @Html.MyLabelFor(model => model.Email)
+            <div class="col-md-10">
+                @Html.MyEmailInputFor(model => model.Email)
+            </div>
+        </div>
+
+        <div class="form-group">
+            @Html.MyLabelFor(model => model.Phone)
+            <div class="col-md-10">
+                @Html.MyTelInputFor(model => model.Phone)
+            </div>
+        </div>
+
+        <div class="form-group">
+            @Html.MyLabelFor(model => model.IsCustomerRighfulOwner)
+            <div class="col-md-10">
+                <div class="checkbox">
+                    @Html.MyCheckboxInputFor(model => model.IsCustomerRighfulOwner)
+                </div>
+            </div>
+        </div>
+
+
+        <div class="form-group">
+            <div class="col-md-offset-2 col-md-10">
+                <input type="submit" value="Create" class="btn btn-default" />
+            </div>
+        </div>
+    </div>
+}
+
+<div>
+    @Html.ActionLink("Back to List", "Index")
+</div>
+
+@section scripts {
+    @*<script src="~/Scripts/Inhouse/ImageUpload.js"></script>*@
+    <script src="/Scripts/Inhouse/FormUtilities.js"></script>
+    <script>
+        //HTML features we may want to use
+        var tests = {
+            filereader: typeof FileReader != 'undefined',
+            dnd: 'draggable' in document.createElement('span'),
+            formdata: !!window.FormData,
+            progress: "upload" in new XMLHttpRequest
+        };
+
+
+        ko.validation.rules['phoneAUS'] = {
+            validator: function (phoneNumber, validate) {
+                if (typeof (phoneNumber) !== 'string') {
+                    return false;
+                }
+                if (utils.isEmptyVal(phoneNumber)) {
+                    return true;
+                } // makes it optional, use 'required' rule if it should be required
+                phoneNumber = phoneNumber.replace(/\s+/g, "");
+                return validate && phoneNumber.length === 10 &&
+                    phoneNumber.match(/^(0(2|3|4|7|8))?\d{8}$/);
+            },
+            message: 'Please specify a valid phone number'
+        };
+        ko.validation.rules["mustBeTrue"] = {
+            validator: function (val, validate) {
+                if (!validate) {
+                    return true;
+                }
+                return val;
+            },
+            message: 'Please supply value with 2 decimal places.'
+        };
+        ko.validation.registerExtenders();
+
+        var ValuationRequest = function () {
+            var self = this;
+
+            self.name = ko.observable().extend({ required: true });
+            self.isCustomerOver18YearsOld = ko.observable().extend({ required: true });
+            self.descriptionOfItemToSell = ko.observable().extend({ required: true });
+            self.makeOrManufacturer = ko.observable();
+            self.model = ko.observable();
+            self.serialNumber = ko.observable();
+            self.condition = ko.observable().extend({ required: true, minLength: 1 }); //enum just dont select the empty option
+            self.otherDetails = ko.observable();
+            self.images = ko.observableArray().extend({ required: true });
+            self.isCustomerRighfulOwner = ko.observable().extend({ required: true, mustBeTrue: { message: 'Customer must be over 18' } });
+            self.amountRequestedForProperty = ko.observable().extend({ required: true });
+            self.email = ko.observable().extend({ required: true, email: true, });
+            self.phone = ko.observable().extend({ required: true, phoneAUS: true });
+
+            ko.validation.group(self);
+
+            self.setFiles = function (files) {
+                console.log(files);
+                for (var i = 0; i < files.length; i++) {
+                    previewfile(files[i]);
+                }
+            };
+        }
+
+        function previewfile(file) {
+            console.log("previewfile");
+            console.log(file);
+            var img = document.createElement("img");
+            img.src = window.URL.createObjectURL(file);
+            img.class = "img-thumbnail";
+            img.height = 140;
+            img.onload = function () {
+                window.URL.revokeObjectURL(this.src);
+            }
+            $("#holder").append(img);
+        }
+
+        vm = new ValuationRequest();
+        ko.applyBindings(vm);
+        $('#requestValuationForm').submit(function (e) {
+            e.preventDefault();
+            console.log(ko.toJS(vm));
+            rhysc.Forms.viewModelSubmitAjax(e, vm);
+        });
+    </script>
+}
