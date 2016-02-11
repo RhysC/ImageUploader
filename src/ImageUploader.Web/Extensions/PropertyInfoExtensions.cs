@@ -1,11 +1,8 @@
 ﻿using System;
-using System.Collections;
 using System.Collections.Generic;
-using System.ComponentModel;
 using System.ComponentModel.DataAnnotations;
 using System.Linq;
 using System.Linq.Expressions;
-using System.Reflection;
 using System.Web.Mvc;
 using Newtonsoft.Json;
 
@@ -21,12 +18,12 @@ namespace ImageUploader.Web.Extensions
         public static MvcHtmlString MyDropDownListFor<TModel, TValue>(this HtmlHelper<TModel> html, Expression<Func<TModel, TValue>> expression)
         {
             var propertyName = ExpressionHelper.GetExpressionText(expression);
-            var dropDownvalues = JsonConvert.SerializeObject(GetDropDownValues(expression).Select(d => new { Key = d.Key, Text = d.Value }),new JsonSerializerSettings{});
+            var dropDownvalues = JsonConvert.SerializeObject(GetDropDownValues(expression).Select(d => new { Key = d.Key, Text = d.Value }));
             return new MvcHtmlString(string.Format(
                  "<select class='form-control' data-bind='options: {0}, optionsText: \"{1}\", optionsValue:\"{2}\", value: {3}, optionsCaption: \"{4}\"'></select>",
-                 dropDownvalues, 
-                 "Text", "Key", 
-                 propertyName.ToCamelCase(), //NOTE this should not be a quoted value
+                 dropDownvalues,
+                 "Text", "Key",
+                 propertyName.ToCamelCase(), //NOTE this should NOT be a quoted value
                  "Choose..."));
         }
         public static MvcHtmlString MyTextInputFor<TModel, TValue>(this HtmlHelper<TModel> html, Expression<Func<TModel, TValue>> expression)
@@ -35,11 +32,11 @@ namespace ImageUploader.Web.Extensions
         }
         public static MvcHtmlString MyTelInputFor<TModel, TValue>(this HtmlHelper<TModel> html, Expression<Func<TModel, TValue>> expression)
         {
-            return GetInput("text", ExpressionHelper.GetExpressionText(expression));
+            return GetInput("tel", ExpressionHelper.GetExpressionText(expression));
         }
         public static MvcHtmlString MyEmailInputFor<TModel, TValue>(this HtmlHelper<TModel> html, Expression<Func<TModel, TValue>> expression)
         {
-            return GetInput("text", ExpressionHelper.GetExpressionText(expression));
+            return GetInput("email", ExpressionHelper.GetExpressionText(expression));
         }
         public static MvcHtmlString MyCheckboxInputFor<TModel, TValue>(this HtmlHelper<TModel> html, Expression<Func<TModel, TValue>> expression)
         {
@@ -85,18 +82,14 @@ namespace ImageUploader.Web.Extensions
         private static bool IsDefaultEnum(object enumValue)
         {
             var type = enumValue.GetType();
-            var val = type.GetField(enumValue.ToString());
             return (enumValue.Equals(GetDefault(type))) &&
-                   enumValue.ToString().Equals("None", StringComparison.InvariantCultureIgnoreCase);
+                    enumValue.ToString().Equals("None", StringComparison.InvariantCultureIgnoreCase);
         }
         public static object GetDefault(Type type)
         {
-            if (type.IsValueType)
-            {
-                return Activator.CreateInstance(type);
-            }
-            return null;
+            return type.IsValueType ? Activator.CreateInstance(type) : null;
         }
+
         private static string GetEnumDescription(object enumValue)
         {
             return enumValue.GetType()
@@ -105,62 +98,6 @@ namespace ImageUploader.Web.Extensions
                 .OfType<DisplayAttribute>()
                 .Select(da => da.Name)
                 .SingleOrDefault() ?? enumValue.ToString();
-        }
-    }
-
-    public static class PropertyInfoExtensions
-    {
-        public static bool AttributeExists<T>(this PropertyInfo propertyInfo) where T : class
-        {
-            var attribute = propertyInfo.GetCustomAttributes(typeof(T), false)
-                .FirstOrDefault() as T;
-            if (attribute == null)
-            {
-                return false;
-            }
-            return true;
-        }
-
-        public static bool AttributeExists<T>(this Type type) where T : class
-        {
-            var attribute = type.GetCustomAttributes(typeof(T), false).FirstOrDefault() as T;
-            if (attribute == null)
-            {
-                return false;
-            }
-            return true;
-        }
-
-        public static T GetAttribute<T>(this Type type) where T : class
-        {
-            return type.GetCustomAttributes(typeof(T), false).FirstOrDefault() as T;
-        }
-
-        public static T GetAttribute<T>(this PropertyInfo propertyInfo) where T : class
-        {
-            return propertyInfo.GetCustomAttributes(typeof(T), false).FirstOrDefault() as T;
-        }
-
-        public static string LabelFromType(Type @type)
-        {
-            var att = GetAttribute<DisplayNameAttribute>(@type);
-            return att != null ? att.DisplayName
-                : @type.Name.ToSeparatedWords();
-        }
-
-        public static string GetLabel(this Object model)
-        {
-            return LabelFromType(model.GetType());
-        }
-
-        public static string GetLabel(this IEnumerable model)
-        {
-            var elementType = model.GetType().GetElementType();
-            if (elementType == null)
-            {
-                elementType = model.GetType().GetGenericArguments()[0];
-            }
-            return LabelFromType(elementType);
         }
     }
 }
