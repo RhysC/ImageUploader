@@ -7,20 +7,24 @@
 
 <style>
     #holder {
-        border: 10px dashed #ccc;
-        width: 100%;
-        min-height: 300px;
+        border: 1px solid #ddd;
+        border-radius: 4px 4px 0 0;
+        /*width: 100%;*/
+        /*min-height: 140px;*/
         margin: 20px auto;
+        padding: 20px;
+        text-align: center;
+        vertical-align: middle;
     }
 
         #holder.hover {
             border: 10px dashed #0c0;
         }
 
-        #holder img {
+        /*#holder img {
             display: block;
             margin: 10px auto;
-        }
+        }*/
 
         #holder p {
             margin: 10px;
@@ -44,19 +48,40 @@
     .hidden {
         display: none !important;
     }
+
+    /*http://stackoverflow.com/questions/11235206/twitter-bootstrap-form-file-element-upload-button*/
+    .btn-file {
+        position: relative;
+        overflow: hidden;
+    }
+
+        .btn-file input[type=file] {
+            position: absolute;
+            top: 0;
+            right: 0;
+            min-width: 100%;
+            min-height: 100%;
+            font-size: 100px;
+            text-align: right;
+            filter: alpha(opacity=0);
+            opacity: 0;
+            outline: none;
+            background: white;
+            cursor: inherit;
+            display: block;
+        }
 </style>
 
 
-<h2>Valuation</h2>
+<h2>Online Valuation</h2>
 
-@using (Html.BeginForm("Create", "ValuationRequest", FormMethod.Post, new { id = "requestValuationForm", @class = "form-horizontal", role = "form" }))
+@using (Html.BeginForm("", "ValuationRequest", FormMethod.Post, new { id = "requestValuationForm", @class = "form-horizontal", role = "form", enctype = "multipart/form-data" }))
 {
     @Html.AntiForgeryToken()
 
     <div class="form-horizontal">
         <hr />
         @Html.ValidationSummary(true, "", new { @class = "text-danger" })
-
 
         <fieldset class="form-horizontal">
             <legend>Item Details</legend>
@@ -96,6 +121,13 @@
             </div>
 
             <div class="form-group">
+                @Html.MyLabelFor(model => model.Condition)
+                <div class="col-md-10">
+                    @Html.MyDropDownListFor(model => model.Condition)
+                </div>
+            </div>
+
+            <div class="form-group">
                 @Html.MyLabelFor(model => model.AmountRequestedForProperty)
                 <div class="col-md-10">
                     @Html.MyTextInputFor(model => model.AmountRequestedForProperty)
@@ -104,29 +136,19 @@
 
 
             <div class="form-group">
-                @Html.MyLabelFor(model => model.Images)
+                @Html.MyLabelFor(model => model.Image)
                 <div class="col-md-10">
+                    <span class="btn btn-primary btn-file">
+                        Upload images <input type="file" name="images" multiple accept="image/*"
+                                             data-bind="event: { change: function() { $root.setFiles($element.files) } }"
+                                             class="btn btn-default" />
+                    </span>
 
-                    <input type="file" name="images" multiple accept="image/*" @*onchange="console.log(this.files)"*@
-                           @*data-bind="event: { change: function(data, event){console.log({d:data, e:event});} }, value:images "*@
-                           onchange="xyz = this"
-                           data-bind="event: { change: function() { $root.setFiles($element.files) } }" />
-
-
-                    <article>
-                        <div id="holder">
-                        </div>
-                        <p id="upload" class="hidden"><label>Drag & drop not supported, but you can still upload via this input field:<br><input type="file"></label></p>
-                        <p id="filereader">File API & FileReader API not supported</p>
-                        <p id="formdata">XHR2's FormData is not supported</p>
-                        <p id="progress">XHR2's upload progress isn't supported</p>
-                        <p>Upload progress: <progress id="uploadprogress" min="0" max="100" value="0">0</progress></p>
-                        <p>Drag an image from your desktop on to the drop zone above to see the browser both render the preview, but also upload automatically to this server.</p>
-
-                    </article>
+                    <div id="holder">
+                        Pending image upload&hellip;
+                    </div>
                 </div>
             </div>
-
 
         </fieldset>
 
@@ -173,7 +195,6 @@
             </div>
         </div>
 
-
         <div class="form-group">
             <div class="col-md-offset-2 col-md-10">
                 <input type="submit" value="Create" class="btn btn-default" />
@@ -197,14 +218,14 @@
             formdata: !!window.FormData,
             progress: "upload" in new XMLHttpRequest
         };
-
+        //TODO redirect if these test fail
 
         ko.validation.rules['phoneAUS'] = {
             validator: function (phoneNumber, validate) {
                 if (typeof (phoneNumber) !== 'string') {
                     return false;
                 }
-                if (utils.isEmptyVal(phoneNumber)) {
+                if (ko.validation.utils.isEmptyVal(phoneNumber)) {
                     return true;
                 } // makes it optional, use 'required' rule if it should be required
                 phoneNumber = phoneNumber.replace(/\s+/g, "");
@@ -218,9 +239,8 @@
                 if (!validate) {
                     return true;
                 }
-                return val;
-            },
-            message: 'Please supply value with 2 decimal places.'
+                return val !== true;
+            }
         };
         ko.validation.registerExtenders();
 
@@ -244,32 +264,108 @@
             ko.validation.group(self);
 
             self.setFiles = function (files) {
+                $("#holder").empty();
+                self.images.removeAll();
                 console.log(files);
                 for (var i = 0; i < files.length; i++) {
-                    previewfile(files[i]);
+                    self.images.push(files[i]);
+                    previewfile(files[i], $("#holder"));
                 }
             };
+            self.canSubmit = function () { return true; } //TODO validate
         }
 
-        function previewfile(file) {
+        function previewfile(file, $element) {
             console.log("previewfile");
             console.log(file);
             var img = document.createElement("img");
             img.src = window.URL.createObjectURL(file);
-            img.class = "img-thumbnail";
-            img.height = 140;
+            img.className = "img-responsive img-thumbnail";
             img.onload = function () {
                 window.URL.revokeObjectURL(this.src);
             }
-            $("#holder").append(img);
+            $element.append(img);
         }
 
         vm = new ValuationRequest();
         ko.applyBindings(vm);
+
+
+        function postAjax() {
+            var formData = new FormData();
+
+            formData.append('Name', vm.name());
+            formData.append('IsCustomerOver18YearsOld', vm.isCustomerOver18YearsOld());
+            formData.append('DescriptionOfItemToSell', vm.descriptionOfItemToSell());
+            formData.append('MakeOrManufacturer', vm.makeOrManufacturer());
+            formData.append('Model', vm.model());
+            formData.append('SerialNumber', vm.serialNumber());
+            formData.append('Condition', vm.condition());
+            formData.append('OtherDetails', vm.otherDetails());
+            formData.append('IsCustomerRighfulOwner', vm.isCustomerRighfulOwner());
+            formData.append('AmountRequestedForProperty', vm.amountRequestedForProperty());
+            formData.append('Email', vm.email());
+            formData.append('Phone', vm.phone());
+
+            //formData.append('Image', vm.images()[0]);
+            //formData.append('Images[]', vm.images());
+
+            for (var i = 0; i < vm.images().length; i++) {
+                var image = vm.images()[i];
+                console.log(image);
+                formData.append('Images[' + i + ']', image);//Consider array syntax?
+            }
+
+
+            var xhr = new XMLHttpRequest();
+            xhr.open('POST', '/api/ValuationRequest');
+            //xhr.onload = function () {
+            //    progress.value = progress.innerHTML = 100;
+            //};
+
+            if (tests.progress) {//TODO REMOVE - we should just bail if their browser sucks
+                console.log("Can show progress");
+                xhr.upload.onprogress = function (event) {
+                    console.log("making progress");
+                    if (event.lengthComputable) {
+                        console.log("event length is Computable");
+                        var complete = (event.loaded / event.total * 100 | 0);
+                        console.log("event.loaded / event.total = " + event.loaded + " / " + event.total);
+                        // progress.value = progress.innerHTML = complete;
+                    }
+                }
+            }
+            console.log(formData);
+            xhr.send(formData);
+
+        }
+
+
         $('#requestValuationForm').submit(function (e) {
             e.preventDefault();
             console.log(ko.toJS(vm));
-            rhysc.Forms.viewModelSubmitAjax(e, vm);
+            try {
+                postAjax();
+            } catch (e) {
+                console.log(e);
+                debugger;
+                throw e;
+            }
+            //rhysc.viewModelSubmit(e, vm);
         });
+
+        vm.name("Rhys");
+        vm.isCustomerOver18YearsOld(true);
+        vm.descriptionOfItemToSell("Fender guitar");
+        vm.makeOrManufacturer("fender");
+        vm.model("Stratocaster");
+        vm.serialNumber("12311222");
+        //self.condition = ko.observable().extend({ required: true, minLength: 1 }); //enum just dont select the empty option
+        vm.otherDetails("Played by hendrix");
+        //self.images = ko.observableArray().extend({ required: true });
+        vm.isCustomerRighfulOwner(true);
+        vm.amountRequestedForProperty(750);
+        vm.email("asdasd@asdasd.asd");
+        vm.phone("0788877766");
     </script>
 }

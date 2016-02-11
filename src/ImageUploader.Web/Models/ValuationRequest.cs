@@ -1,6 +1,6 @@
-﻿using System;
+﻿using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
-using System.Web;
+using MultipartDataMediaFormatter.Infrastructure;
 
 namespace ImageUploader.Web.Models
 {
@@ -14,7 +14,7 @@ namespace ImageUploader.Web.Models
         public string SerialNumber { get; set; }
         public PropertyCondition Condition { get; set; }
         public string OtherDetails { get; set; }
-        public HttpPostedFileBase[] Images { get; set; }
+        public List<HttpFile> Images { get; set; }
         public bool IsCustomerRighfulOwner { get; set; }
         public decimal AmountRequestedForProperty { get; set; }
         public string Email { get; set; }

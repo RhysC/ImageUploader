@@ -122,6 +122,17 @@
   <ItemGroup>
     <Compile Include="App_Start\BundleConfig.cs" />
     <Compile Include="App_Start\FilterConfig.cs" />
+    <Compile Include="Infrastructure\MultipartDataMediaFormatter\Converters\FormDataToObjectConverter.cs" />
+    <Compile Include="Infrastructure\MultipartDataMediaFormatter\Converters\HttpContentToFormDataConverter.cs" />
+    <Compile Include="Infrastructure\MultipartDataMediaFormatter\Converters\ObjectToMultipartDataByteArrayConverter.cs" />
+    <Compile Include="Infrastructure\MultipartDataMediaFormatter\FormMultipartEncodedMediaTypeFormatter.cs" />
+    <Compile Include="Infrastructure\MultipartDataMediaFormatter\Infrastructure\DateTimeConverterISO8601.cs" />
+    <Compile Include="Infrastructure\MultipartDataMediaFormatter\Infrastructure\Extensions\TypeExtensions.cs" />
+    <Compile Include="Infrastructure\MultipartDataMediaFormatter\Infrastructure\FormData.cs" />
+    <Compile Include="Infrastructure\MultipartDataMediaFormatter\Infrastructure\HttpFile.cs" />
+    <Compile Include="Infrastructure\MultipartDataMediaFormatter\Infrastructure\Logger\FormatterLoggerAdapter.cs" />
+    <Compile Include="Infrastructure\MultipartDataMediaFormatter\Infrastructure\Logger\FormDataConverterLogger.cs" />
+    <Compile Include="Infrastructure\MultipartDataMediaFormatter\Infrastructure\Logger\IFormDataConverterLogger.cs" />
     <Compile Include="App_Start\RouteConfig.cs" />
     <Compile Include="App_Start\WebApiConfig.cs" />
     <Compile Include="Controllers\HomeController.cs" />
