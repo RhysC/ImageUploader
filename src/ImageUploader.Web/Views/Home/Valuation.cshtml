@@ -73,16 +73,15 @@
 </style>
 
 
-<h2>Valuation</h2>
+<h2>Online Valuation</h2>
 
-@using (Html.BeginForm("Create", "ValuationRequest", FormMethod.Post, new { id = "requestValuationForm", @class = "form-horizontal", role = "form", enctype = "multipart/form-data" }))
+@using (Html.BeginForm("", "ValuationRequest", FormMethod.Post, new { id = "requestValuationForm", @class = "form-horizontal", role = "form", enctype = "multipart/form-data" }))
 {
     @Html.AntiForgeryToken()
 
     <div class="form-horizontal">
         <hr />
         @Html.ValidationSummary(true, "", new { @class = "text-danger" })
-
 
         <fieldset class="form-horizontal">
             <legend>Item Details</legend>
@@ -122,6 +121,13 @@
             </div>
 
             <div class="form-group">
+                @Html.MyLabelFor(model => model.Condition)
+                <div class="col-md-10">
+                    @Html.MyDropDownListFor(model => model.Condition)
+                </div>
+            </div>
+
+            <div class="form-group">
                 @Html.MyLabelFor(model => model.AmountRequestedForProperty)
                 <div class="col-md-10">
                     @Html.MyTextInputFor(model => model.AmountRequestedForProperty)
@@ -130,7 +136,7 @@
 
 
             <div class="form-group">
-                @Html.MyLabelFor(model => model.Images)
+                @Html.MyLabelFor(model => model.Image)
                 <div class="col-md-10">
                     <span class="btn btn-primary btn-file">
                         Upload images <input type="file" name="images" multiple accept="image/*"
@@ -189,7 +195,6 @@
             </div>
         </div>
 
-
         <div class="form-group">
             <div class="col-md-offset-2 col-md-10">
                 <input type="submit" value="Create" class="btn btn-default" />
@@ -209,9 +214,11 @@
         //HTML features we may want to use
         var tests = {
             filereader: typeof FileReader != 'undefined',
-
+            dnd: 'draggable' in document.createElement('span'),
+            formdata: !!window.FormData,
+            progress: "upload" in new XMLHttpRequest
         };
-
+        //TODO redirect if these test fail
 
         ko.validation.rules['phoneAUS'] = {
             validator: function (phoneNumber, validate) {
@@ -258,12 +265,14 @@
 
             self.setFiles = function (files) {
                 $("#holder").empty();
+                self.images.removeAll();
                 console.log(files);
                 for (var i = 0; i < files.length; i++) {
+                    self.images.push(files[i]);
                     previewfile(files[i], $("#holder"));
                 }
             };
-            self.canSubmit = function () { return true; }//TODO validate
+            self.canSubmit = function () { return true; } //TODO validate
         }
 
         function previewfile(file, $element) {
@@ -280,10 +289,83 @@
 
         vm = new ValuationRequest();
         ko.applyBindings(vm);
+
+
+        function postAjax() {
+            var formData = new FormData();
+
+            formData.append('Name', vm.name());
+            formData.append('IsCustomerOver18YearsOld', vm.isCustomerOver18YearsOld());
+            formData.append('DescriptionOfItemToSell', vm.descriptionOfItemToSell());
+            formData.append('MakeOrManufacturer', vm.makeOrManufacturer());
+            formData.append('Model', vm.model());
+            formData.append('SerialNumber', vm.serialNumber());
+            formData.append('Condition', vm.condition());
+            formData.append('OtherDetails', vm.otherDetails());
+            formData.append('IsCustomerRighfulOwner', vm.isCustomerRighfulOwner());
+            formData.append('AmountRequestedForProperty', vm.amountRequestedForProperty());
+            formData.append('Email', vm.email());
+            formData.append('Phone', vm.phone());
+
+            //formData.append('Image', vm.images()[0]);
+            //formData.append('Images[]', vm.images());
+
+            for (var i = 0; i < vm.images().length; i++) {
+                var image = vm.images()[i];
+                console.log(image);
+                formData.append('Images[' + i + ']', image);//Consider array syntax?
+            }
+
+
+            var xhr = new XMLHttpRequest();
+            xhr.open('POST', '/api/ValuationRequest');
+            //xhr.onload = function () {
+            //    progress.value = progress.innerHTML = 100;
+            //};
+
+            if (tests.progress) {//TODO REMOVE - we should just bail if their browser sucks
+                console.log("Can show progress");
+                xhr.upload.onprogress = function (event) {
+                    console.log("making progress");
+                    if (event.lengthComputable) {
+                        console.log("event length is Computable");
+                        var complete = (event.loaded / event.total * 100 | 0);
+                        console.log("event.loaded / event.total = " + event.loaded + " / " + event.total);
+                        // progress.value = progress.innerHTML = complete;
+                    }
+                }
+            }
+            console.log(formData);
+            xhr.send(formData);
+
+        }
+
+
         $('#requestValuationForm').submit(function (e) {
-            //e.preventDefault();
+            e.preventDefault();
             console.log(ko.toJS(vm));
+            try {
+                postAjax();
+            } catch (e) {
+                console.log(e);
+                debugger;
+                throw e;
+            }
             //rhysc.viewModelSubmit(e, vm);
         });
+
+        vm.name("Rhys");
+        vm.isCustomerOver18YearsOld(true);
+        vm.descriptionOfItemToSell("Fender guitar");
+        vm.makeOrManufacturer("fender");
+        vm.model("Stratocaster");
+        vm.serialNumber("12311222");
+        //self.condition = ko.observable().extend({ required: true, minLength: 1 }); //enum just dont select the empty option
+        vm.otherDetails("Played by hendrix");
+        //self.images = ko.observableArray().extend({ required: true });
+        vm.isCustomerRighfulOwner(true);
+        vm.amountRequestedForProperty(750);
+        vm.email("asdasd@asdasd.asd");
+        vm.phone("0788877766");
     </script>
 }

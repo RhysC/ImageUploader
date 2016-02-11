@@ -9,11 +9,11 @@ namespace ImageUploader.Web.Controllers
 {
     public class ImagesController : ApiController
     {
-        /// <summary>
+       /// <summary>
         /// http://www.asp.net/web-api/overview/advanced/sending-html-form-data-part-2
         /// </summary>
         /// <returns></returns>
-        public async Task<HttpResponseMessage> Post()
+        public async Task<HttpResponseMessage> Post2()
         {
             if (!Request.Content.IsMimeMultipartContent())
             {
